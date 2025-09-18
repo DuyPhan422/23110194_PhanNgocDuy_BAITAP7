@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout-admin}">
+<head><title>Categories (Paginated)</title></head>
+<body>
+<div layout:fragment="content">
+    <h2>Categories (Paginated)</h2>
+
+    <a href="/admin/categories/add" class="btn btn-success mb-3">Add Category</a>
+
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr><th>ID</th><th>Name</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            <tr th:each="c : ${categories.content}">
+    <td th:text="${c.id}"></td>
+    <td th:text="${c.name}"></td>
+    <td>
+        <a th:href="@{'/admin/categories/edit/' + ${c.id}}" class="btn btn-primary btn-sm">Edit</a>
+        <a th:href="@{'/admin/categories/detail/' + ${c.id}}" class="btn btn-info btn-sm">Detail</a>
+        <a th:href="@{'/admin/categories/delete/' + ${c.id}}"
+           onclick="return confirm('Delete this category?')"
+           class="btn btn-danger btn-sm">Delete</a>
+    </td>
+</tr>
+
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <nav th:if="${categories.totalPages > 1}">
+    <ul class="pagination">
+        <li th:each="i : ${#numbers.sequence(0, categories.totalPages-1)}"
+            th:classappend="${i == categories.number} ? 'active'">
+            <a class="page-link"
+               th:href="@{/admin/categories(page=${i}, size=${categories.size})}"
+               th:text="${i+1}"></a>
+        </li>
+    </ul>
+</nav>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{admin/layout-admin}">
+<head><title>Accounts</title></head>
+<body>
+<div layout:fragment="content">
+    <h2>Accounts</h2>
+    <a href="/admin/accounts/add" class="btn btn-success mb-2">Add</a>
+    <a href="/admin/accounts/search" class="btn btn-info mb-2">Search</a>
+    <a href="/admin/accounts/searchpaginated" class="btn btn-warning mb-2">Search Paginated</a>
+
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th><th>Username</th><th>Email</th><th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="a : ${accounts}">
+                <td th:text="${a.id}"></td>
+                <td th:text="${a.username}"></td>
+                <td th:text="${a.email}"></td>
+                <td>
+                    <a th:href="@{'/admin/accounts/edit/' + ${a.id}}" class="btn btn-primary btn-sm">Edit</a>
+                    <a th:href="@{'/admin/accounts/detail/' + ${a.id}}" class="btn btn-info btn-sm">Detail</a>
+                    <a th:href="@{'/admin/accounts/delete/' + ${a.id}}" class="btn btn-danger btn-sm"
+                       onclick="return confirm('Delete this account?')">Delete</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
