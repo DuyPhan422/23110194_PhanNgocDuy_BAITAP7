@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html >
+<head>
+  <meta charset="UTF-8"/>
+  <title>Products (AJAX)</title>
+  <style>
+    body{font-family:Segoe UI,Arial;margin:24px}
+    table{border-collapse:collapse;width:100%}
+    th,td{border:1px solid #ddd;padding:8px}
+    th{background:#f6f6f6}
+    .row{display:flex;gap:8px;align-items:center;margin:8px 0}
+    #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35)}
+    #card{background:#fff;width:540px;margin:60px auto;padding:16px;border-radius:8px}
+    textarea{width:100%}
+    .muted{opacity:.6;font-size:.9rem}
+  </style>
+</head>
+<body>
+<nav style="background:#333;padding:10px">
+  <a href="/admin/categories" style="color:#fff;margin-right:15px;text-decoration:none">Categories</a>
+  <a href="/admin/products" style="color:#fff;text-decoration:none">Products</a>
+</nav>
+
+<h2>Categories</h2>
+
+<div class="row">
+  <input id="q" placeholder="Search name..."/>
+  <button onclick="load(0)">Search</button>
+  <button onclick="openAdd()">Add</button>
+</div>
+
+<table>
+  <thead><tr><th>ID</th><th>Name</th><th>Icon</th><th>Actions</th></tr></thead>
+  <tbody id="tbody"><tr><td colspan="4" class="muted">Loading...</td></tr></tbody>
+</table>
+
+<div class="row">
+  <button onclick="prev()">Prev</button>
+  <span id="pageinfo" class="muted"></span>
+  <button onclick="next()">Next</button>
+</div>
+
+<!-- modal -->
+<div id="modal">
+  <div id="card">
+    <h3 id="title">Add Category</h3>
+    <input type="hidden" id="categoryId"/>
+    <div class="row"><input id="categoryName" placeholder="Category name"/></div>
+    <div class="row"><input id="icon" type="file" accept="image/*"/></div>
+    <div class="row">
+      <button onclick="save()">Save</button>
+      <button onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let page=0,size=5,totalPages=1;
+
+  async function load(p=0){
+    page=p;
+    const q = document.getElementById('q').value || '';
+    const res = await fetch(`/api/category?q=${encodeURIComponent(q)}&page=${page}&size=${size}`);
+    if(!res.ok){ alert('Load failed'); return; }
+    const js = await res.json();            // {status,message,body}
+    const pg = js.body;                     // Page<Category>
+    totalPages = pg?.totalPages ?? 1;
+    document.getElementById('pageinfo').textContent = `Page ${pg.number+1}/${totalPages}`;
+
+    const rows = (pg.content||[]).map(c => `
+      <tr>
+        <td>${c.categoryId}</td>
+        <td>${c.categoryName||''}</td>
+        <td>${c.icon? `<img src="/uploads/${c.icon}" style="height:32px;border-radius:4px">` : ''}</td>
+        <td>
+          <button onclick='edit(${c.categoryId})'>Edit</button>
+          <button onclick='removeCat(${c.categoryId})'>Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    document.getElementById('tbody').innerHTML = rows || '<tr><td colspan="4" class="muted">No data</td></tr>';
+  }
+  function prev(){ if(page>0) load(page-1); }
+  function next(){ if(page<totalPages-1) load(page+1); }
+
+  async function edit(id){
+    const fd = new FormData(); fd.append('id', id);
+    const res = await fetch('/api/category/getCategory', { method:'POST', body: fd });
+    if(!res.ok){ alert('Not found'); return; }
+    const { body:c } = await res.json();
+    document.getElementById('title').textContent='Edit Category';
+    document.getElementById('categoryId').value = c.categoryId;
+    document.getElementById('categoryName').value = c.categoryName || '';
+    document.getElementById('icon').value='';
+    document.getElementById('modal').style.display='block';
+  }
+
+  function openAdd(){
+    document.getElementById('title').textContent='Add Category';
+    document.getElementById('categoryId').value='';
+    document.getElementById('categoryName').value='';
+    document.getElementById('icon').value='';
+    document.getElementById('modal').style.display='block';
+  }
+  function closeModal(){ document.getElementById('modal').style.display='none'; }
+
+  async function save(){
+    const id = document.getElementById('categoryId').value;
+    const name = document.getElementById('categoryName').value.trim();
+    const file = document.getElementById('icon').files[0];
+
+    if(!name){ alert('Tên không được trống'); return; }
+
+    const fd = new FormData();
+    fd.append('categoryName', name);
+    if(file) fd.append('icon', file);
+
+    let url='/api/category/addCategory', method='POST';
+    if(id){ url='/api/category/updateCategory'; method='PUT'; fd.append('categoryId', id); }
+
+    const res = await fetch(url, { method, body: fd });
+    if(res.ok){ closeModal(); load(page); } else alert('Save failed');
+  }
+
+  async function removeCat(id){
+    if(!confirm('Delete this category?')) return;
+    const res = await fetch('/api/category/deleteCategory?categoryId='+id, { method:'DELETE' });
+    if(res.ok) load(page); else alert('Delete failed');
+  }
+
+  load(0);
+</script>
+</body>
+</html>

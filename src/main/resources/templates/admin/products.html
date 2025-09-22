@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html >
+<head>
+  <meta charset="UTF-8"/>
+  <title>Products (AJAX)</title>
+  <style>
+    body{font-family:Segoe UI,Arial;margin:24px}
+    table{border-collapse:collapse;width:100%}
+    th,td{border:1px solid #ddd;padding:8px}
+    th{background:#f6f6f6}
+    .row{display:flex;gap:8px;align-items:center;margin:8px 0}
+    #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35)}
+    #card{background:#fff;width:540px;margin:60px auto;padding:16px;border-radius:8px}
+    textarea{width:100%}
+    .muted{opacity:.6;font-size:.9rem}
+  </style>
+</head>
+<body>
+<nav style="background:#333;padding:10px">
+  <a href="/admin/categories" style="color:#fff;margin-right:15px;text-decoration:none">Categories</a>
+  <a href="/admin/products" style="color:#fff;text-decoration:none">Products</a>
+</nav>
+
+<h2>Products</h2>
+
+<div class="row">
+  <input id="q" placeholder="Search name..."/>
+  <button onclick="load(0)">Search</button>
+  <button onclick="openAdd()">Add</button>
+</div>
+
+<table>
+  <thead>
+  <tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Qty</th><th>Image</th><th>Actions</th></tr>
+  </thead>
+  <tbody id="tbody"><tr><td colspan="7" class="muted">Loading...</td></tr></tbody>
+</table>
+
+<div class="row">
+  <button onclick="prev()">Prev</button>
+  <span id="pageinfo" class="muted"></span>
+  <button onclick="next()">Next</button>
+</div>
+
+<!-- modal -->
+<div id="modal">
+  <div id="card">
+    <h3 id="title">Add Product</h3>
+    <input type="hidden" id="productId"/>
+    <div class="row"><input id="productName" placeholder="Name"/></div>
+    <div class="row"><input id="unitPrice" type="number" step="0.01" placeholder="Unit price"/></div>
+    <div class="row"><input id="quantity" type="number" placeholder="Quantity" value="0"/></div>
+    <div class="row"><select id="categoryId"></select></div>
+    <div class="row"><textarea id="description" rows="3" placeholder="Description"></textarea></div>
+    <div class="row">
+      <input id="discount" type="number" step="0.01" placeholder="Discount" value="0"/>
+      <select id="status">
+        <option value="1" selected>Active</option>
+        <option value="0">Inactive</option>
+      </select>
+    </div>
+    <div class="row"><input id="images" type="file" accept="image/*"/></div>
+    <div class="row">
+      <button onclick="save()">Save</button>
+      <button onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let page=0,size=5,totalPages=1;
+
+  async function loadCategoriesForSelect(){
+    const res = await fetch(`/api/category?page=0&size=1000`);
+    if(!res.ok) { alert('Load categories failed'); return; }
+    const js = await res.json();
+    const list = (js.body && js.body.content) ? js.body.content : [];
+    document.getElementById('categoryId').innerHTML =
+      list.map(c => `<option value="${c.categoryId}">${c.categoryName}</option>`).join('');
+  }
+
+  async function load(p=0){
+    page=p;
+    const q = document.getElementById('q').value || '';
+    const res = await fetch(`/api/product?q=${encodeURIComponent(q)}&page=${page}&size=${size}`);
+    if(!res.ok){ alert('Load failed'); return; }
+    const js = await res.json();              // {status,message,body}
+    const pg = js.body;                       // Page<Product>
+    totalPages = pg?.totalPages ?? 1;
+    document.getElementById('pageinfo').textContent = `Page ${pg.number+1}/${totalPages}`;
+
+    const rows = (pg.content||[]).map(x => `
+      <tr>
+        <td>${x.productId}</td>
+        <td>${x.productName||''}</td>
+        <td>${x.category? x.category.categoryName : ''}</td>
+        <td>${x.unitPrice}</td>
+        <td>${x.quantity}</td>
+        <td>${x.images? `<img src="/uploads/${x.images}" style="height:32px;border-radius:4px">` : ''}</td>
+        <td>
+          <button onclick='edit(${x.productId})'>Edit</button>
+          <button onclick='removeP(${x.productId})'>Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    document.getElementById('tbody').innerHTML = rows || '<tr><td colspan="7" class="muted">No data</td></tr>';
+  }
+  function prev(){ if(page>0) load(page-1); }
+  function next(){ if(page<totalPages-1) load(page+1); }
+
+  function openAdd(){
+    document.getElementById('title').textContent='Add Product';
+    document.getElementById('productId').value='';
+    document.getElementById('productName').value='';
+    document.getElementById('unitPrice').value='';
+    document.getElementById('quantity').value='0';
+    document.getElementById('description').value='';
+    document.getElementById('discount').value='0';
+    document.getElementById('status').value='1';
+    document.getElementById('images').value='';
+    document.getElementById('modal').style.display='block';
+    loadCategoriesForSelect();
+  }
+
+  async function edit(id){
+    // Nếu bạn có API POST /api/product/getProduct?productId=... thì gọi trực tiếp:
+    // const fd = new FormData(); fd.append('productId', id);
+    // const res = await fetch('/api/product/getProduct', { method:'POST', body: fd });
+
+    // Fallback: lấy list và lọc (đơn giản cho demo):
+    const res = await fetch(`/api/product?q=&page=0&size=1000`);
+    const js = await res.json();
+    const all = js.body?.content || [];
+    const x = all.find(it => it.productId === id);
+    if(!x){ alert('Not found'); return; }
+
+    document.getElementById('title').textContent='Edit Product';
+    document.getElementById('productId').value = x.productId;
+    document.getElementById('productName').value = x.productName || '';
+    document.getElementById('unitPrice').value = x.unitPrice ?? '';
+    document.getElementById('quantity').value = x.quantity ?? 0;
+    document.getElementById('description').value = x.description ?? '';
+    document.getElementById('discount').value = x.discount ?? 0;
+    document.getElementById('status').value = String(x.status ?? 1);
+    document.getElementById('images').value='';
+
+    await loadCategoriesForSelect();
+    if(x.category) document.getElementById('categoryId').value = x.category.categoryId;
+
+    document.getElementById('modal').style.display='block';
+  }
+
+  function closeModal(){ document.getElementById('modal').style.display='none'; }
+
+  async function save(){
+    const id = document.getElementById('productId').value;
+    const fd = new FormData();
+    fd.append('productName', document.getElementById('productName').value);
+    fd.append('unitPrice', document.getElementById('unitPrice').value);
+    fd.append('quantity', document.getElementById('quantity').value);
+    fd.append('description', document.getElementById('description').value);
+    fd.append('discount', document.getElementById('discount').value);
+    fd.append('status', document.getElementById('status').value);
+    fd.append('categoryId', document.getElementById('categoryId').value);
+    const img = document.getElementById('images').files[0];
+    if(img) fd.append('images', img);
+
+    let url='/api/product/addProduct', method='POST';
+    if(id){ url='/api/product/updateProduct'; method='PUT'; fd.append('productId', id); }
+
+    const res = await fetch(url, { method, body: fd });
+    if(res.ok){ closeModal(); load(page); } else alert('Save failed');
+  }
+
+  async function removeP(id){
+    if(!confirm('Delete this product?')) return;
+    const res = await fetch('/api/product/deleteProduct?productId='+id, { method:'DELETE' });
+    if(res.ok) load(page); else alert('Delete failed');
+  }
+
+  load(0);
+</script>
+</body>
+</html>

@@ -14,19 +14,6 @@
 	<version>1.0</version>
 	<name>demoSringbootST5ST6-2</name>
 	<description>Demo project for Spring Boot</description>
-	<url />
-	<licenses>
-		<license />
-	</licenses>
-	<developers>
-		<developer />
-	</developers>
-	<scm>
-		<connection />
-		<developerConnection />
-		<tag />
-		<url />
-	</scm>
 	<properties>
 		<java.version>22</java.version>
 	</properties>
@@ -34,10 +21,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -57,15 +40,6 @@
 			<artifactId>spring-boot-devtools</artifactId>
 			<scope>runtime</scope>
 			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.thymeleaf.extras</groupId>
-			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>nz.net.ultraq.thymeleaf</groupId>
-			<artifactId>thymeleaf-layout-dialect</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
@@ -92,6 +66,23 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.5.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
