@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<head>
+    <title th:text="#{login.title}">Login</title>
+</head>
+<body>
+<div layout:fragment="content" class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center" th:text="#{login.title}">Login</h2>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/login}" method="post">
+                        <div class="mb-3">
+                            <label for="username" class="form-label" th:text="#{login.username}">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required text="admin">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label" th:text="#{login.password}">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required text="123456">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" th:text="#{login.button}">Login</button>
+                        </div>
+                    </form>
+                    <div th:if="${error}" class="alert alert-danger mt-3" role="alert">
+                        <p th:text="${error}"></p>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="?lang=en">English</a> | <a href="?lang=vi">Tiếng Việt</a>
+                    <br/>
+                     <a href="/swagger-ui/index.html">Swagger 3</a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

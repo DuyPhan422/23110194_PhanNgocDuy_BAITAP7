@@ -1,0 +1,59 @@
+c<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<head>
+    <title th:text="${product.id == null} ? #{product.add.title} : #{product.edit.title}">Form</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <h1 th:text="${product.id == null} ? #{product.add.title} : #{product.edit.title}">Form</h1>
+
+    <form th:action="${product.id == null} ? @{/products/add} : @{/products/edit/{id}(id=${product.id})}" th:object="${product}" method="post" enctype="multipart/form-data">
+        <input type="hidden" th:field="*{id}" />
+
+        <div class="form-group">
+            <label for="productName" th:text="#{product.name}">Product Name</label>
+            <input type="text" class="form-control" id="productName" th:field="*{productName}" />
+            <div class="text-danger" th:if="${#fields.hasErrors('productName')}" th:errors="*{productName}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="unitPrice" th:text="#{product.price}">Unit Price</label>
+            <input type="number" step="0.01" class="form-control" id="unitPrice" th:field="*{unitPrice}" />
+             <div class="text-danger" th:if="${#fields.hasErrors('unitPrice')}" th:errors="*{unitPrice}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="quantity" th:text="#{product.quantity}">Quantity</label>
+            <input type="number" class="form-control" id="quantity" th:field="*{quantity}" />
+             <div class="text-danger" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></div>
+        </div>
+
+        <div class="form-group" th:if="${product.id != null and product.images != null}">
+            <label>Current Image</label>
+            <div>
+                <img th:src="@{'/uploads/' + ${product.images}}" alt="Current Product Image" style="max-width: 200px;"/>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="imageFile" th:text="#{product.image}">Image</label>
+            <input type="file" class="form-control-file" id="imageFile" name="imageFile" />
+        </div>
+
+        <div class="form-group">
+            <label for="category" th:text="#{product.category}">Category</label>
+            <select class="form-control" id="category" th:field="*{category}">
+                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+            </select>
+        </div>
+
+        <br/>
+
+        <button type="submit" class="btn btn-primary" th:text="${product.id == null} ? #{button.add} : #{button.update}"></button>
+        <a th:href="@{/products}" class="btn btn-secondary" th:text="#{button.back}">Back</a>
+    </form>
+</div>
+</body>
+</html>

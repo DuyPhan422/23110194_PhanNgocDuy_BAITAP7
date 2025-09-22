@@ -6,10 +6,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // map URL /uploads/** tới thư mục uploads thực tế
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:uploads/");
-    }
+
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
+		registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
+		registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
+		registry.addResourceHandler("/uploads/**").addResourceLocations("file:./uploads/");
+
+	}
 }

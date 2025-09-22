@@ -1,54 +1,46 @@
 package vn.iotstar.entity;
 
-import java.io.Serializable;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonIgnore; // dùng nếu cần
-import org.springframework.format.annotation.DateTimeFormat;
-import jakarta.persistence.*;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Entity
-@Table(name = "Products")
-public class Product implements Serializable {
-    private static final long serialVersionUID = 1L;
+@Table(name = "products")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Product {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long productId;
+	@Column(nullable = false)
+	private String productName;
 
-    @Column(length = 500, columnDefinition = "nvarchar(500) not null")
-    private String productName;
+	private double unitPrice;
 
-    @Column(nullable = false)
-    private int quantity;
+	private int quantity;
 
-    @Column(nullable = false)
-    private double unitPrice;
+	@Column(length = 1000)
+	private String images; // Can be a single filename or a list of filenames separated by comma
 
-    @Column(length = 200)
-    private String images;
 
-    @Column(columnDefinition = "nvarchar(500) not null")
-    private String description;
-
-    @Column(nullable = false)
-    private double discount;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") 
-    private Date createDate;
-
-    @Column(nullable = false)
-    private short status;
-
-    @ManyToOne
-    @JoinColumn(name="categoryId")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
+    @JsonBackReference("category-product")
     private Category category;
 
-    @PrePersist
-    private void onCreate() {
-        if (createDate == null) createDate = new Date();
-    }
 }

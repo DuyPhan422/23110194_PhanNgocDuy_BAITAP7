@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{layout/layout}">
+<head>
+<title>Home</title>
+</head>
+<body>
+	<div layout:fragment="content">
+		<h2 th:text="#{home.title}">Home</h2>
+
+		<div th:if="${session.currentUser != null}">
+			<p>
+				Welcome, <span th:text="${session.currentUser.fullName}">User</span>!
+			</p>
+
+			<!-- Admin menu -->
+			<div th:if="${session.currentUser.role.name() == 'admin'}">
+				<a th:href="@{/category}" style="margin-right: 15px;">Manage
+					Categories</a> <a th:href="@{/products}">Manage Products</a>
+			</div>
+
+			<!-- Manager/User -->
+			<div th:if="${session.currentUser.role.name() != 'admin'}">
+				<a th:href="@{/category}">View Categories</a> <a
+					th:href="@{/products}">Manage Products</a>
+
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,29 +1,60 @@
 package vn.iotstar.entity;
 
+import java.util.List;
 
-import java.io.Serializable;
-import java.util.Set;
-import com.fasterxml.jackson.annotation.JsonIgnore; 
-import jakarta.persistence.*;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 @Entity
-@Table(name = "Categories")
-public class Category implements Serializable {
-    private static final long serialVersionUID = 1L;
+@Table(name = "Category")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Category {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer id;
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long categoryId;
+	@Column(nullable = false, unique = true)
+	private String name;
 
-    private String categoryName;
+	private String description;
 
-    private String icon;
+	private String image;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    private Set<Product> products;
+	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JsonIgnore
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	private List<Product> products;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id")
+	@JsonBackReference("user-category")
+	private User createdBy;
+
+	@Override
+	public String toString() {
+		return "Category{" + "id=" + id + ", name='" + name + '\'' + '}';
+	}
+
 }
-	
