@@ -1,27 +1,23 @@
 package vn.iotstar.entity;
 
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
+import org.springframework.format.annotation.DateTimeFormat;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "Category")
@@ -34,27 +30,27 @@ public class Category {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
-	@Column(nullable = false, unique = true)
+	@NotBlank(message = "Tên danh mục không được để trống")
 	private String name;
 
+	@NotBlank(message = "Mô tả không được để trống")
 	private String description;
 
 	private String image;
 
-	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-	@JsonIgnore
-	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
-	private List<Product> products;
+	@NotNull(message = "Trạng thái không được để trống")
+	private boolean status;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
-	@JsonBackReference("user-category")
+	@NotNull(message = "Ngày tạo không được để trống")
+	@PastOrPresent(message = "Ngày tạo không được là một ngày trong tương lai")
+	@DateTimeFormat(pattern = "yyyy-MM-dd")
+	private LocalDate creationDate;
+
+    @NotNull(message = "Số lượng không được để trống")
+    @Min(value = 0, message = "Số lượng không được âm")
+    private Integer quantity;
+
+	@ManyToOne
+	@JoinColumn(name = "created_by")
 	private User createdBy;
-
-	@Override
-	public String toString() {
-		return "Category{" + "id=" + id + ", name='" + name + '\'' + '}';
-	}
-
 }

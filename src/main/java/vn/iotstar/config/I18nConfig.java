@@ -1,6 +1,5 @@
 package vn.iotstar.config;
 
-
 import java.util.Locale;
 
 import org.springframework.context.MessageSource;

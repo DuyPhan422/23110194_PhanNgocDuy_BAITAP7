@@ -1,13 +1,10 @@
 package vn.iotstar.entity;
 
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,7 +27,7 @@ public class User {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private Long id;
 
 	@Column(unique = true)
 	private String username;
@@ -46,8 +43,7 @@ public class User {
 	@Enumerated(EnumType.STRING)
 	private Role role;
 
-	@OneToMany(mappedBy = "createdBy", fetch = FetchType.LAZY)
-    @JsonIgnore
+	@OneToMany(mappedBy = "createdBy")
 	private Set<Category> categories;
 
 	public enum Role {

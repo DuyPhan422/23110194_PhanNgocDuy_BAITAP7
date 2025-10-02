@@ -21,7 +21,12 @@ public class LoginController {
 	@GetMapping("/login")
 	public String showLoginForm(HttpSession session) {
 		if (session.getAttribute("currentUser") != null) {
-			return "redirect:/home";
+			User user = (User) session.getAttribute("currentUser");
+			if (user.getRole() == User.Role.admin) {
+				return "redirect:/admin";
+			} else {
+				return "redirect:/user/index";
+			}
 		}
 		return "login";
 	}
@@ -34,8 +39,12 @@ public class LoginController {
 
 		if (user != null && password.equals(user.getPassword())) {
 			session.setAttribute("currentUser", user);
-			
-			return "redirect:/home";
+
+			if (user.getRole() == User.Role.admin) {
+				return "redirect:/admin";
+			} else {
+				return "redirect:/user";
+			}
 		} else {
 			model.addAttribute("error", "Invalid username or password.");
 			return "login";

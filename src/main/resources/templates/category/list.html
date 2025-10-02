@@ -26,6 +26,9 @@
             <th th:text="#{category.name.label}">Name</th>
             <th th:text="#{category.description}">Description</th>
             <th th:text="#{category.image}">Image</th>
+            <th>Status</th>
+            <th>Creation Date</th>
+            <th>Quantity</th>
             <th th:if="${isAdminOrManager}" th:text="#{actions.label}">Actions</th>
         </tr>
         </thead>
@@ -34,8 +37,11 @@
             <td th:text="${category.name}"></td>
             <td th:text="${category.description}"></td>
             <td>
-                <img th:if="${category.image != null}" th:src="@{'/uploads/' + ${category.image}}" alt="Category Image" width="100"/>
+                <img th:if="${category.image != null}" th:src="@{/category/images/{filename}(filename=${category.image})}" alt="Category Image" width="100"/>
             </td>
+            <td th:text="${category.status ? 'Active' : 'Inactive'}"></td>
+            <td th:text="${#temporals.format(category.creationDate, 'dd-MM-yyyy')}"></td>
+            <td th:text="${category.quantity}"></td>
             <td th:if="${isAdminOrManager}">
                 <a th:href="@{/category/edit/{id}(id=${category.id})}" class="btn btn-success btn-sm" th:text="#{edit.button}">Edit</a>
                 <a th:href="@{/category/delete/{id}(id=${category.id})}" class="btn btn-danger btn-sm"

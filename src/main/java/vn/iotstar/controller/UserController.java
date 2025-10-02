@@ -2,17 +2,13 @@ package vn.iotstar.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class HomeController {
-
-	@GetMapping("/")
-	public String home() {
-		return "redirect:/home";
-	}
-
-	@GetMapping("/home")
+@RequestMapping("/user")
+public class UserController {
+	@GetMapping
 	public String index() {
-		return "home";
+		return "user/index";
 	}
 }

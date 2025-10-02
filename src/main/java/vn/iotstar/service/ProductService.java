@@ -4,8 +4,6 @@ import vn.iotstar.entity.Product;
 import vn.iotstar.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Pageable;
-
 
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +18,7 @@ public class ProductService {
         return productRepository.findAll();
     }
 
-    public Optional<Product> findById(Long id) {
+    public Optional<Product> findById(Integer id) {
         return productRepository.findById(id);
     }
 
@@ -28,11 +26,11 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(Integer id) {
         productRepository.deleteById(id);
     }
 
     public List<Product> search(String keyword) {
-        return productRepository.findByProductNameContaining(keyword, Pageable.unpaged()).getContent();
+        return productRepository.findByNameContaining(keyword);
     }
 }

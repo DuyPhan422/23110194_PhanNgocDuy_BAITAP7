@@ -1,113 +1,150 @@
 package vn.iotstar.controller;
 
 import vn.iotstar.entity.Product;
+import vn.iotstar.entity.User;
 import vn.iotstar.service.CategoryService;
 import vn.iotstar.service.FileStorageService;
 import vn.iotstar.service.ProductService;
+import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.validation.Valid;
-import java.util.Optional;
-
 @Controller
-@RequestMapping("/products")
+@RequestMapping("/product")
 public class ProductController {
-
     @Autowired
     private ProductService productService;
-
     @Autowired
     private CategoryService categoryService;
-
     @Autowired
     private FileStorageService fileStorageService;
 
-    @GetMapping
-    public String listProducts(Model model) {
-        model.addAttribute("products", productService.findAll());
-        return "products/list";
+    private boolean isUserAuthorized(HttpSession session) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        return currentUser != null;
     }
 
-    @GetMapping("/search")
-    public String searchProducts(@RequestParam("keyword") String keyword, Model model) {
-        model.addAttribute("products", productService.search(keyword));
-        return "products/list";
+    private void addUserRolesToModel(HttpSession session, Model model) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser != null) {
+            boolean isAdminOrManager = currentUser.getRole() == User.Role.admin || currentUser.getRole() == User.Role.manager;
+            model.addAttribute("isAdminOrManager", isAdminOrManager);
+        }
+    }
+
+    @GetMapping
+    public String listProducts(Model model, HttpSession session) {
+        if (!isUserAuthorized(session)) {
+            return "redirect:/login";
+        }
+        model.addAttribute("products", productService.findAll());
+        addUserRolesToModel(session, model);
+        return "product/list";
     }
 
     @GetMapping("/add")
-    public String showAddForm(Model model) {
+    public String showAddForm(Model model, HttpSession session) {
+        if (!isUserAuthorized(session)) {
+            return "redirect:/login";
+        }
         model.addAttribute("product", new Product());
         model.addAttribute("categories", categoryService.findAll());
-        return "products/form";
+        addUserRolesToModel(session, model);
+        return "product/form";
     }
 
     @PostMapping("/add")
-    public String addProduct(@Valid @ModelAttribute("product") Product product, 
-                             BindingResult result, 
-                             @RequestParam("imageFile") MultipartFile imageFile, 
-                             Model model) {
-        if (result.hasErrors()) {
-            model.addAttribute("categories", categoryService.findAll());
-            return "products/form";
+    public String addProduct(@Valid @ModelAttribute("product") Product product, BindingResult bindingResult, @RequestParam("imageFile") MultipartFile imageFile, HttpSession session, Model model) {
+        if (!isUserAuthorized(session)) {
+            return "redirect:/login";
         }
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("categories", categoryService.findAll());
+            addUserRolesToModel(session, model);
+            return "product/form";
+        }
+
+        User currentUser = (User) session.getAttribute("currentUser");
+        product.setCreatedBy(currentUser);
 
         if (!imageFile.isEmpty()) {
-            String imageUrl = fileStorageService.storeFile(imageFile);
-            product.setImages(imageUrl);
+            String fileName = fileStorageService.storeFile(imageFile);
+            product.setImage(fileName);
         }
-
         productService.save(product);
-        return "redirect:/products";
+        return "redirect:/product";
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable("id") Long id, Model model) {
-        Product product = productService.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid product Id:" + id));
+    public String showEditForm(@PathVariable("id") Integer id, Model model, HttpSession session) {
+        if (!isUserAuthorized(session)) {
+            return "redirect:/login";
+        }
+        Product product = productService.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid product Id:" + id));
         model.addAttribute("product", product);
         model.addAttribute("categories", categoryService.findAll());
-        return "products/form";
+        addUserRolesToModel(session, model);
+        return "product/form";
     }
 
     @PostMapping("/edit/{id}")
-    public String updateProduct(@PathVariable("id") Long id, 
-                                @Valid @ModelAttribute("product") Product product, 
-                                BindingResult result, 
-                                @RequestParam("imageFile") MultipartFile imageFile,
-                                Model model) {
-        if (result.hasErrors()) {
+    public String editProduct(@PathVariable("id") Integer id, @Valid @ModelAttribute("product") Product product, BindingResult bindingResult, @RequestParam("imageFile") MultipartFile imageFile, HttpSession session, Model model) {
+        if (!isUserAuthorized(session)) {
+            return "redirect:/login";
+        }
+
+        if (bindingResult.hasErrors()) {
             model.addAttribute("categories", categoryService.findAll());
-            product.setId(id);
-            return "products/form";
+            addUserRolesToModel(session, model);
+            return "product/form";
         }
 
-        Optional<Product> optionalProduct = productService.findById(id);
-        if (optionalProduct.isPresent()) {
-            Product existingProduct = optionalProduct.get();
+        User currentUser = (User) session.getAttribute("currentUser");
+        Product existingProduct = productService.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid product Id:" + id));
+        product.setCreatedBy(existingProduct.getCreatedBy());
 
-            if (!imageFile.isEmpty()) {
-                String imageUrl = fileStorageService.storeFile(imageFile);
-                product.setImages(imageUrl);
-            } else {
-                product.setImages(existingProduct.getImages());
-            }
+        if (!imageFile.isEmpty()) {
+            String fileName = fileStorageService.storeFile(imageFile);
+            product.setImage(fileName);
         } else {
-             throw new IllegalArgumentException("Invalid product Id:" + id);
+            product.setImage(existingProduct.getImage());
         }
-
         product.setId(id);
         productService.save(product);
-        return "redirect:/products";
+        return "redirect:/product";
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteProduct(@PathVariable("id") Long id) {
+    public String deleteProduct(@PathVariable("id") Integer id, HttpSession session) {
+        if (!isUserAuthorized(session)) {
+            return "redirect:/login";
+        }
         productService.deleteById(id);
-        return "redirect:/products";
+        return "redirect:/product";
+    }
+
+    @GetMapping("/images/{filename:.+}")
+    @ResponseBody
+    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+        Resource file = fileStorageService.loadFileAsResource(filename);
+        return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"").body(file);
+    }
+
+    @GetMapping("/search")
+    public String searchProduct(@RequestParam("keyword") String keyword, Model model, HttpSession session) {
+        if (!isUserAuthorized(session)) {
+            return "redirect:/login";
+        }
+        model.addAttribute("products", productService.search(keyword));
+        addUserRolesToModel(session, model);
+        return "product/list";
     }
 }

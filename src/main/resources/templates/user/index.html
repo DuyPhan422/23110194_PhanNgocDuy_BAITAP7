@@ -3,12 +3,12 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/layout}">
 <head>
-    <title>Welcome</title>
+    <title>User Dashboard</title>
 </head>
 <body>
 <section layout:fragment="content">
-    <h1>Welcome to our Website!</h1>
-    <p>Please <a th:href="@{/login}">login</a> to continue.</p>
+    <h1>Welcome, <span th:text="${session.currentUser.username}">User</span>!</h1>
+    <p>This is your dashboard.</p>
 </section>
 </body>
 </html>

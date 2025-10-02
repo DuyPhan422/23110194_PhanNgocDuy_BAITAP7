@@ -1,13 +1,14 @@
 package vn.iotstar.service;
 
-import vn.iotstar.config.FileStorageProperties;
-import vn.iotstar.exception.StorageException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import vn.iotstar.config.FileStorageProperties;
+import vn.iotstar.exception.StorageException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -64,13 +65,6 @@ public class FileStorageService {
             }
         } catch (MalformedURLException ex) {
             throw new StorageException("File not found " + fileName, ex);
-        }
-    }
-
-    public void deleteFile(String fileName) throws IOException {
-        Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
-        if(Files.exists(filePath)) {
-            Files.delete(filePath);
         }
     }
 }
